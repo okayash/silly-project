@@ -40,7 +40,7 @@ SERIES = {
         "figures": ["The Switchman","The Geographer","The Lamplighter","The King","The Fox",
                     "The Conceited Man","The Tippler","The Rose","The Businessman",
                     "The Snake","The Little Prince","The Merchant"],
-        "secret": "The Pilot",
+        "secret": ["The Pilot", "The Little Prince Special Edition"]
     },
     "Monsters' Carnival": {
         "figures": ["Grim Reaper","Doctor Beak","Killer Bunny","Zombie","Vampire","Creepy Clown"],
@@ -56,6 +56,10 @@ SERIES = {
                     "Camping","Digital Bind","Overload","Boiling Frog","Caged Bird",
                     "Self Anchored","City Escape"],
         "secret": "Boundary",
+    },
+            "Little Hare": {
+        "figures": ["Pink Hare"],
+        "secret": "Black Hare",
     },
 }
 
@@ -78,7 +82,10 @@ def save_collection(data: dict):
 
 def all_figures(series_name: str) -> list[str]:
     s = SERIES[series_name]
-    return s["figures"] + [s["secret"] + " ★"]
+    secret = s["secret"]
+    if isinstance(secret, list):
+        return s["figures"] + [sec + " ★" for sec in secret]
+    return s["figures"] + [secret + " ★"]
 
 def fig_key(series: str, fig: str) -> str:
     return f"{series}||{fig}"
@@ -109,7 +116,7 @@ def get_image(series_name, fig_name):
 
 st.set_page_config(
     page_title="hirono collection",
-    page_icon="🪆",
+    page_icon="🪷",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -195,7 +202,7 @@ col = st.session_state.collection
 # ── header ───────────────────────────────────────────────────────────────────
 
 st.markdown('<div class="main-title">hirono collection</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-sub">blind box tracker · pop mart</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-sub">track your hironos! · pop mart</div>', unsafe_allow_html=True)
 
 # ── stats ─────────────────────────────────────────────────────────────────────
 
