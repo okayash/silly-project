@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#1a1820;color:#e8e2f0;min-height:100vh}
+  :root{--pink:#e0a3c0;--pink-dim:#9a6880;--bg:#1a1820;--bg2:#221f2b;--bg3:#2d2940;--border:#3d3950;--text:#e8e2f0;--muted:#9d96b0;--owned:#b3e5c8;--want:#f5d0a0}
+  h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--pink);letter-spacing:-0.5px}
+  .app{max-width:720px;margin:0 auto;padding:1.5rem 1rem 3rem}
+  .header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+  .subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+  .stats{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+  .stat{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:.6rem 1rem;display:flex;flex-direction:column;gap:2px}
+  .stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+  .stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .stat-val.owned{color:var(--owned)}
+  .stat-val.want{color:var(--want)}
+  .stat-val.total{color:var(--pink)}
+  .controls{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+  .filter-btn{background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:.4rem .85rem;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+  .filter-btn:hover{border-color:var(--pink-dim);color:var(--text)}
+  .filter-btn.active{background:#3a2f4a;border-color:var(--pink-dim);color:var(--pink)}
+  .series-select{background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:.4rem .85rem;font-size:13px;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;outline:none}
+  .series-select:focus{border-color:var(--pink-dim)}
+  .series-section{margin-bottom:2rem}
+  .series-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--pink);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .series-count{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.6rem}
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:12px;padding:.75rem;cursor:pointer;transition:all .15s;user-select:none;position:relative}
+  .card:hover{border-color:var(--pink-dim);background:var(--bg3)}
+  .card.owned{border-color:#5e9e7a;background:#1e2f28}
+  .card.want{border-color:#9e7e3e;background:#2f2818}
+  .card-name{font-size:13px;font-weight:500;line-height:1.3;margin-bottom:.35rem;color:var(--text)}
+  .card.owned .card-name{color:var(--owned)}
+  .card.want .card-name{color:var(--want)}
+  .card-secret{font-size:10px;color:#e8b4d8;background:#3d2840;border-radius:4px;padding:2px 6px;display:inline-block;margin-bottom:.35rem;font-weight:500}
+  .card-btns{display:flex;gap:.3rem;margin-top:.5rem}
+  .btn-sm{flex:1;padding:.3rem .2rem;border-radius:6px;font-size:11px;border:0.5px solid;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .1s;text-align:center}
+  .btn-own{background:transparent;border-color:#5e9e7a;color:#5e9e7a}
+  .btn-own:hover,.card.owned .btn-own{background:#5e9e7a;color:#0f1f18}
+  .btn-want{background:transparent;border-color:#9e7e3e;color:#9e7e3e}
+  .btn-want:hover,.card.want .btn-want{background:#9e7e3e;color:#1f1508}
+  .card.owned .btn-own{background:#5e9e7a;color:#0f1f18}
+  .card.want .btn-want{background:#9e7e3e;color:#1f1508}
+  .status-dot{width:7px;height:7px;border-radius:50%;position:absolute;top:.6rem;right:.6rem;flex-shrink:0}
+  .dot-owned{background:var(--owned)}
+  .dot-want{background:var(--want)}
+  .empty-msg{color:var(--muted);font-size:14px;padding:2rem;text-align:center;background:var(--bg2);border-radius:12px;border:0.5px dashed var(--border)}
+  select option{background:#221f2b}
+  .reset-btn{background:transparent;border:0.5px solid #5a3a4a;border-radius:8px;padding:.4rem .85rem;font-size:12px;color:#9d6880;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:auto}
+  .reset-btn:hover{border-color:#e0a3c0;color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>hirono collection</h1>
+      <p class="subtitle">blind box tracker · pop mart</p>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="controls">
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="owned">owned</button>
+    <button class="filter-btn" data-filter="want">wishlist</button>
+    <button class="filter-btn" data-filter="none">unchecked</button>
+    <select class="series-select" id="series-filter">
+      <option value="all">all series</option>
+    </select>
+    <button class="reset-btn" id="reset-btn">clear all</button>
+  </div>
+  <div id="main"></div>
+</div>
+<script>
+const DATA = {
+  "The Other One": {
+    figures: ["Amnesia","Cuckoo","Staring","Nowhere Safe","Raving","Marionette","Vagrancy","Being Alive","The Ghost","The Crow","The Monster","The Fox"],
+    secret: "Dreaming"
+  },
+  "Little Mischief": {
+    figures: ["Loose Fish","The Aviator","Persona","Boiling Frog","Protector","Cardboard Box","Hot Spring","Mechanic","Slingshot","Tied Up","Airplane","Chained"],
+    secret: "Hidden Edition"
+  },
+  "Mime": {
+    figures: ["Guardian","Blind","Devilry","Unspoken","Patience","Prison","Destroy","Drift","Fool","Seemer","Poem","Idol"],
+    secret: "Secret"
+  },
+  "Reshape": {
+    figures: ["Burst","Woodcarving","Fading","Healing","Paradise Lost","Drowning","Costume","Parasite","Voyage"],
+    secret: "Secret"
+  },
+  "Shelter": {
+    figures: ["Sneak Mantel","Candleholder","Poet","Alien","Birdy","Circus Strong","Traffic Cone","Cabin","Warrior","Sunny Doll"],
+    secret: "Secret"
+  },
+  "Echo": {
+    figures: ["Piece of Memory","Back Off","Caught You","Staying Up","Daydreaming Knight","Journey in the Rain","Soul Connection","Eaten","Get Lucky","Breakout Plan","Hiding Behind You","Remember"],
+    secret: "Secret"
+  },
+  "Le Petit Prince": {
+    figures: ["The Switchman","The Geographer","The Lamplighter","The King","The Fox","The Conceited Man","The Tippler","The Rose","The Businessman","The Snake","The Little Prince","The Merchant"],
+    secret: "The Pilot"
+  },
+  "Monsters' Carnival": {
+    figures: ["Grim Reaper","Doctor Beak","Killer Bunny","Zombie","Vampire","Creepy Clown"],
+    secret: "The Disembodied"
+  },
+  "Tamed Wild Grass": {
+    figures: ["Sisyphean Work","Live Under Receipts","Full Time","Canned Dreams","Fated","Camping","Digital Bind","Overload","Boiling Frog","Caged Bird","Self Anchored","City Escape"],
+    secret: "Boundary"
+  },
+  "Road Journal": {
+    figures: ["City Dust Afloat","Grey Gravel","Woven Woods","Lost in the Night","Into Fogwild","Frostfall Hour"],
+    secret: "Highway Imprint"
+  }
+};
+
+function allFigures(series) {
+  return [...DATA[series].figures, DATA[series].secret + " ★"];
+}
+
+let state = {};
+try { state = JSON.parse(localStorage.getItem('hirono_v1') || '{}'); } catch(e) {}
+
+function save() { try { localStorage.setItem('hirono_v1', JSON.stringify(state)); } catch(e) {} }
+
+function key(series, name) { return series + '|' + name; }
+
+function getStatus(series, name) { return state[key(series, name)] || 'none'; }
+
+function setStatus(series, name, status) {
+  const k = key(series, name);
+  state[k] = state[k] === status ? 'none' : status;
+  save();
+  render();
+}
+
+let activeFilter = 'all';
+let activeSeries = 'all';
+
+function computeStats() {
+  let total = 0, owned = 0, want = 0;
+  for (const s of Object.keys(DATA)) {
+    const figs = allFigures(s);
+    total += figs.length;
+    for (const f of figs) {
+      const st = getStatus(s, f);
+      if (st === 'owned') owned++;
+      else if (st === 'want') want++;
+    }
+  }
+  return { total, owned, want };
+}
+
+function render() {
+  const { total, owned, want } = computeStats();
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><span class="stat-val total">${total}</span><span class="stat-lbl">figures</span></div>
+    <div class="stat"><span class="stat-val owned">${owned}</span><span class="stat-lbl">owned</span></div>
+    <div class="stat"><span class="stat-val want">${want}</span><span class="stat-lbl">wishlist</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--muted)">${total - owned - want}</span><span class="stat-lbl">unchecked</span></div>
+  `;
+
+  const sel = document.getElementById('series-filter');
+  if (sel && !sel.dataset.init) {
+    sel.dataset.init = '1';
+    for (const s of Object.keys(DATA)) {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sel.appendChild(opt);
+    }
+  }
+
+  const seriesToShow = activeSeries === 'all' ? Object.keys(DATA) : [activeSeries];
+  let html = '';
+
+  for (const s of seriesToShow) {
+    const figs = allFigures(s);
+    const filteredFigs = figs.filter(f => {
+      if (activeFilter === 'all') return true;
+      return getStatus(s, f) === activeFilter || (activeFilter === 'none' && getStatus(s, f) === 'none');
+    });
+    if (filteredFigs.length === 0) continue;
+    const ownedCount = figs.filter(f => getStatus(s, f) === 'owned').length;
+    html += `<div class="series-section">
+      <div class="series-title">${s}<span class="series-count">${ownedCount}/${figs.length} owned</span></div>
+      <div class="grid">`;
+    for (const f of filteredFigs) {
+      const isSecret = f.endsWith('★');
+      const displayName = isSecret ? f.replace(' ★','') : f;
+      const st = getStatus(s, f);
+      html += `<div class="card ${st}" data-s="${s.replace(/"/g,'&quot;')}" data-f="${f.replace(/"/g,'&quot;')}">
+        <div class="status-dot ${st === 'owned' ? 'dot-owned' : st === 'want' ? 'dot-want' : ''}" style="${!st || st==='none' ? 'display:none' : ''}"></div>
+        ${isSecret ? '<span class="card-secret">secret</span>' : ''}
+        <div class="card-name">${displayName}</div>
+        <div class="card-btns">
+          <button class="btn-sm btn-own" data-s="${s.replace(/"/g,'&quot;')}" data-f="${f.replace(/"/g,'&quot;')}" data-t="owned">✓ own</button>
+          <button class="btn-sm btn-want" data-s="${s.replace(/"/g,'&quot;')}" data-f="${f.replace(/"/g,'&quot;')}" data-t="want">♡ want</button>
+        </div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  if (!html) html = '<div class="empty-msg">no figures match this filter ✦</div>';
+  document.getElementById('main').innerHTML = html;
+
+  document.querySelectorAll('.btn-sm').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      setStatus(btn.dataset.s, btn.dataset.f, btn.dataset.t);
+    });
+  });
+}
+
+document.addEventListener('click', e => {
+  const fb = e.target.closest('.filter-btn');
+  if (fb) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    fb.classList.add('active');
+    activeFilter = fb.dataset.filter;
+    render(); return;
+  }
+  if (e.target.id === 'reset-btn') {
+    if (confirm('clear your entire collection? this cannot be undone.')) {
+      state = {}; save(); render();
+    }
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'series-filter') {
+    activeSeries = e.target.value;
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
