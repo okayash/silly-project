@@ -43,12 +43,13 @@ https://myhironocollection.streamlit.app
 
 
 ## Future Work:
-a lot
-better storage clearly
-improve similarity retrival cuz it messes up a lot. 
-finish scraper! 
-a better ui besides streamlit, even if i love streamlit
-fix image sizes
+a lot.
+better storage clearly --> Postgre SQL
+- improve similarity retrival for edge cases (little prince series)
+- a better ui besides streamlit, even if i love streamlit
+- fix image sizes
+- adding an alerts tab that will show recent ebay listing for figures on a users wishlist.
+- decouple files.
 
 
 
