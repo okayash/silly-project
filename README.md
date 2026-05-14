@@ -12,11 +12,17 @@ Users can:
 
 ## Dependencies
 Python
+
 PyTorch
+
 Transformers
+
 Streamlit
+
 CLIP
+
 PIL
+
 
 ## Functionality
 
@@ -24,16 +30,25 @@ The application uses the vision transfomer model CLIP to generate embeddings for
 
 Data/saves persist locally in a .json file.
 
-## To run:
+
+## To run locally:
 
 ``pip install -r requirements.txt``
+
 ``streamlit run app.py``
+
+
+## access: 
+https://myhironocollection.streamlit.app
+
 
 ## Future Work:
 a lot
-better storage
+better storage clearly
 improve similarity retrival cuz it messes up a lot. 
 finish scraper! 
 a better ui besides streamlit, even if i love streamlit
 fix image sizes
+
+
 
