@@ -1,6 +1,12 @@
 import streamlit as st
 import json
 from pathlib import Path
+import requests
+import base64
+import torch
+import json
+from PIL import Image
+from transformers import CLIPProcessor, CLIPModel
 
 # ── data ────────────────────────────────────────────────────────────────────
 
@@ -11,30 +17,29 @@ SERIES = {
         "secret": "Dreaming",
     },
     "Little Mischief": {
-        "figures": ["Loose Fish","The Aviator","Persona","Boiling Frog","Protector",
-                    "Cardboard Box","Hot Spring","Mechanic","Slingshot","Tied Up","Airplane","Chained"],
-        "secret": "Hidden Edition",
+        "figures": ["Rag Picker", "Destroyer", "Robot", "Boiling Frog", "Float", "The Aviator", "Birdman", 
+                    "Loose Fish", "Pretender", "Persona", "Manacle", "Protector"],
+        "secret": "Unknown Journey",
     },
     "Mime": {
-        "figures": ["Guardian","Blind","Devilry","Unspoken","Patience","Prison",
-                    "Destroy","Drift","Fool","Seemer","Poem","Idol"],
-        "secret": "Secret",
+        "figures": ["Blind","Destroy","Devilry","Drifter","Fool","Guardian",
+                    "Patience","Poem","Prison","Secrecy","Seeker","Unspoken"],
+        "secret": "Silent",
     },
     "Reshape": {
         "figures": ["Burst","Woodcarving","Fading","Healing","Paradise Lost",
                     "Drowning","Costume","Parasite","Voyage"],
-        "secret": "Secret",
+        "secret": "Puppet",
     },
     "Shelter": {
-        "figures": ["Sneak Mantel","Candleholder","Poet","Alien","Birdy",
-                    "Circus Strong","Traffic Cone","Cabin","Warrior","Sunny Doll"],
-        "secret": "Secret",
+        "figures": ["Mantel Clock","Candleholder","Poet","Alien","Birdy",
+                    "Circus","Traffic Cone","Cabin","Warrior","Sunny Doll"],
+        "secret": "Stuffed Bear",
     },
     "Echo": {
-        "figures": ["Piece of Memory","Back Off","Caught You","Staying Up","Daydreaming Knight",
-                    "Journey in the Rain","Soul Connection","Eaten","Get Lucky",
-                    "Breakout Plan","Hiding Behind You","Remember"],
-        "secret": "Secret",
+        "figures": ["Back Off", "Breakout Plan", "Caught You", "Daydreaming", "Eaten", "Get Lucky", "Hiding Behind You",
+                    "Journey in the Rain", "Knight","Pieces of Memory", "Soul Connection", "Staying Up"],
+        "secret": "Never Growing Up",
     },
     "Le Petit Prince": {
         "figures": ["The Switchman","The Geographer","The Lamplighter","The King","The Fox",
@@ -101,12 +106,19 @@ def set_status(collection: dict, series: str, fig: str, status: str):
         collection[k] = status
     save_collection(collection)
 
+@st.cache_resource
+def load_clip():
+    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    with open("hirono_index.json") as f:
+        index = json.load(f)
+    return model, processor, index
 
 # --images --------------------------------------------------------------------
 
 def get_image(series_name, fig_name):
-    folder = series_name.lower().replace(" ", "_").replace("'", "").replace("_wild_", "_wild")
-    filename = "_".join(w.capitalize() for w in fig_name.replace(" ★", "").split()) + ".png"
+    folder = series_name.lower().replace(" ", "_").replace("'", "")
+    filename = fig_name.lower().replace(" ★", "").replace(" ", "_") + ".png"
     path = Path("images") / folder / filename
     if path.exists():
         return path
@@ -284,7 +296,6 @@ for series_name in series_to_show:
                 status = get_status(col, series_name, fig)
 
 
-                # name + secret badge
                 badge = ' <span class="secret-badge">secret</span>' if is_secret else ""
                 color = {"owned": "#b3e5c8", "want": "#f5d0a0"}.get(status, "#e8e2f0")
                 st.markdown(
@@ -312,4 +323,42 @@ for series_name in series_to_show:
                         set_status(col, series_name, fig, "want")
                         st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown("### Figure Identification: upload a photo to identify which Hirono is in the photo")
+uploaded = st.file_uploader("Upload your photo: ", type=["jpg","jpeg","png"], key="identifier")
+
+if uploaded:
+    st.image(uploaded, width=200)
+    if st.button("identify"):
+        model, processor, index = load_clip()
+        image = Image.open(uploaded).convert("RGB")
+        inputs = processor(images=image, return_tensors="pt")
+        with torch.no_grad():
+            outputs = model.vision_model(**inputs)
+            embedding = outputs.pooler_output
+            embedding = embedding / embedding.norm(dim=-1, keepdim=True)
+
+        best, best_score = None, -1
+        for entry in index:
+            ref = torch.tensor(entry["embedding"])
+            score = torch.nn.functional.cosine_similarity(embedding, ref.unsqueeze(0)).item()
+            if score > best_score:
+                best_score = score
+                best = entry
+
+        st.session_state.identified = best 
+
+if "identified" in st.session_state:
+    best = st.session_state.identified
+    st.success(f"**{best['figure']}** from **{best['series']}**")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✓ add to owned", key="add_owned"):
+            set_status(col, best['series'], best['figure'], "owned")
+            st.session_state.pop("identified")
+            st.toast(f"added {best['figure']} to your collection!")
+    with col2:
+        if st.button("♡ add to wishlist", key="add_want"):
+            set_status(col, best['series'], best['figure'], "want")
+            st.session_state.pop("identified")
+            st.toast(f"added {best['figure']} to your wishlist!")
