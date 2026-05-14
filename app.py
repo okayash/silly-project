@@ -262,10 +262,11 @@ series_to_show = [series_filter] if series_filter != "all series" else list(SERI
 
 COLS = 4
 
+st.markdown("[🔍 identify your Hirono figure here via photo upload !](#identify-a-figure)")
+
 for series_name in series_to_show:
     figs = all_figures(series_name)
 
-    # apply status filter
     if status_filter == "owned":
         figs = [f for f in figs if get_status(col, series_name, f) == "owned"]
     elif status_filter == "wishlist":
@@ -324,8 +325,8 @@ for series_name in series_to_show:
                         st.rerun()
 
 st.markdown("---")
-st.markdown("### Figure Identification: upload a photo to identify which Hirono is in the photo")
-uploaded = st.file_uploader("Upload your photo: ", type=["jpg","jpeg","png"], key="identifier")
+st.markdown("### identify a figure")
+uploaded = st.file_uploader("Upload your photo to see which Hirono is in the picture! : ", type=["jpg","jpeg","png"], key="identifier")
 
 if uploaded:
     st.image(uploaded, width=200)
