@@ -68,7 +68,7 @@ SERIES = {
     },
 }
 
-SAVE_FILE = Path("my_collection.json")
+SAVE_FILE = Path("data/my_collection.json")
 
 # ── persistence ──────────────────────────────────────────────────────────────
 
@@ -249,7 +249,7 @@ with fc2:
         label_visibility="collapsed"
     )
 with fc3:
-    if st.button("🗑 clear all", use_container_width=True):
+    if st.button("🗑 clear all", width='stretch'):
         st.session_state.collection = {}
         save_collection({})
         st.rerun()
@@ -309,18 +309,18 @@ for series_name in series_to_show:
                 img = get_image(series_name, display)
 
                 if img:
-                    st.image(str(img), use_container_width=True)
+                    st.image(str(img), width='stretch')
 
                 b1, b2 = st.columns(2)
 
                 with b1:
                     own_label = "✓ owned" if status == "owned" else "✓ own"
-                    if st.button(own_label, key=f"own_{series_name}_{fig}", use_container_width=True):
+                    if st.button(own_label, key=f"own_{series_name}_{fig}", width='stretch'):
                         set_status(col, series_name, fig, "owned")
                         st.rerun()
                 with b2:
                     want_label = "♡ wanted" if status == "want" else "♡ want"
-                    if st.button(want_label, key=f"want_{series_name}_{fig}", use_container_width=True):
+                    if st.button(want_label, key=f"want_{series_name}_{fig}", width='stretch'):
                         set_status(col, series_name, fig, "want")
                         st.rerun()
 
